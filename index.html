@@ -1,304 +1,550 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fuel Date Calculator</title>
-    <style>
-        :root {
-            var(--primary): #f59e0b;
-            --primary: #f59e0b;     
-            --bg: #1e293b;          
-            --card-bg: #0f172a;     
-            --text: #f8fafc;        
-            --input-bg: #334155;    
-            --input-border: #475569;
-            --success: #10b981;     
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            background-image: repeating-linear-gradient(
-                45deg,
-                #1e293b,
-                #1e293b 10px,
-                #1a2433 10px,
-                #1a2433 20px
-            );
-            overflow: hidden; /* Prevents scrollbars from the falling drops */
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Fuel Navigator · Sri Lanka Refueling Calendar</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, 'Inter', sans-serif;
+    }
 
-        /* --- BACKGROUND FUEL DROPS --- */
-        .drop {
-            position: fixed;
-            width: 15px;
-            height: 15px;
-            background: var(--primary);
-            /* This border-radius creates a teardrop shape! */
-            border-radius: 0 50% 50% 50%;
-            transform: rotate(45deg);
-            top: -50px;
-            z-index: -1; /* Keeps them behind the main card */
-            animation: fall linear infinite;
-            opacity: 0.6;
-            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.3);
-        }
-        @keyframes fall {
-            0% { top: -10%; opacity: 0; }
-            10% { opacity: 0.6; }
-            90% { opacity: 0.6; }
-            100% { top: 110%; opacity: 0; }
-        }
-        /* Position and timing for each drop */
-        .drop:nth-child(1) { left: 10%; animation-duration: 3.2s; animation-delay: 0s; }
-        .drop:nth-child(2) { left: 20%; animation-duration: 4.1s; animation-delay: 1.5s; width: 10px; height: 10px; }
-        .drop:nth-child(3) { left: 85%; animation-duration: 3.8s; animation-delay: 0.5s; }
-        .drop:nth-child(4) { left: 92%; animation-duration: 2.9s; animation-delay: 2.2s; width: 18px; height: 18px; }
-        .drop:nth-child(5) { left: 5%; animation-duration: 4.5s; animation-delay: 3s; width: 12px; height: 12px; }
-        .drop:nth-child(6) { left: 80%; animation-duration: 3.5s; animation-delay: 1.8s; }
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 10% 30%, #1e2a1f, #0a0f0a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      position: relative;
+      overflow-x: hidden;
+    }
 
-        /* --- MAIN CARD --- */
-        .container {
-            background-color: var(--card-bg);
-            padding: 2.5rem;
-            border-radius: 12px;
-            border-top: 5px solid var(--primary); 
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
-            max-width: 400px;
-            width: 100%;
-            z-index: 10; /* Keeps card above drops */
-        }
-        h2 { 
-            margin-top: 0; 
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .form-group { margin-bottom: 1.5rem; }
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #cbd5e1;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
-        }
-        input[type="text"], select {
-            width: 100%;
-            padding: 0.85rem;
-            background-color: var(--input-bg);
-            border: 2px solid var(--input-border);
-            color: var(--text);
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 1.1rem;
-            font-weight: bold;
-            transition: border-color 0.2s;
-        }
-        input[type="text"]:focus, select:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        #plate {
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-family: monospace;
-        }
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            background-color: var(--input-bg);
-            padding: 1rem;
-            border-radius: 6px;
-            border: 1px solid var(--input-border);
-        }
-        input[type="checkbox"] {
-            width: 1.2rem;
-            height: 1.2rem;
-            accent-color: var(--primary);
-        }
+    /* dynamic fuel blob background */
+    body::before {
+      content: "";
+      position: fixed;
+      top: -20%;
+      left: -10%;
+      width: 70%;
+      height: 70%;
+      background: radial-gradient(ellipse, rgba(255, 165, 30, 0.12), transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatBlob 18s infinite alternate;
+    }
 
-        /* --- FANCY CALENDAR ANIMATIONS --- */
-        .result {
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background-color: rgba(16, 185, 129, 0.1); 
-            border: 2px solid var(--success); 
-            border-radius: 6px;
-            display: none; /* Controlled by JS */
-            text-align: center;
-            transform-origin: top; /* Animates from the top down */
-        }
-        
-        /* The pop-in animation for the whole box */
-        @keyframes popIn {
-            0% { transform: scaleY(0); opacity: 0; }
-            70% { transform: scaleY(1.05); opacity: 1; }
-            100% { transform: scaleY(1); opacity: 1; }
-        }
-        .result.show {
-            display: block;
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
+    body::after {
+      content: "";
+      position: fixed;
+      bottom: -15%;
+      right: -5%;
+      width: 60%;
+      height: 60%;
+      background: radial-gradient(ellipse, rgba(220, 80, 20, 0.1), transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatBlob2 22s infinite alternate;
+    }
 
-        .result-label {
-            color: #94a3b8;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        /* The 3D flip animation for the text */
-        @keyframes flipText {
-            0% { transform: rotateX(-90deg); opacity: 0; }
-            100% { transform: rotateX(0deg); opacity: 1; }
-        }
-        .date-wrapper {
-            perspective: 1000px; /* Gives the 3D depth to the flip */
-        }
-        .date-display {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--success);
-            margin: 0.75rem 0;
-            text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
-            display: inline-block;
-        }
-        /* Applied by JS every time the date changes */
-        .date-display.flip {
-            animation: flipText 0.5s ease-out forwards;
-        }
+    @keyframes floatBlob {
+      0% { transform: translate(0, 0) scale(1); opacity: 0.4; }
+      100% { transform: translate(5%, 8%) scale(1.2); opacity: 0.7; }
+    }
+    @keyframes floatBlob2 {
+      0% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+      100% { transform: translate(-6%, -5%) scale(1.25); opacity: 0.6; }
+    }
 
-        #quotaOutput {
-            display: inline-block;
-            background-color: var(--primary);
-            color: var(--card-bg);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-        }
-    </style>
+    /* main glass card */
+    .fuel-card {
+      background: rgba(18, 24, 16, 0.75);
+      backdrop-filter: blur(14px);
+      border-radius: 3rem;
+      border: 1px solid rgba(255, 180, 40, 0.35);
+      box-shadow: 0 30px 45px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(255, 200, 70, 0.1) inset;
+      width: 100%;
+      max-width: 640px;
+      padding: 2rem 2rem 2.5rem;
+      transition: all 0.2s ease;
+      z-index: 2;
+    }
+
+    h1 {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.95rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #FFD966, #FFA41F);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -0.3px;
+      margin-bottom: 0.5rem;
+    }
+
+    .sub {
+      color: #c0cfb2;
+      border-left: 3px solid #f5a623;
+      padding-left: 1rem;
+      margin-bottom: 2rem;
+      font-weight: 400;
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    /* input groups */
+    .input-group {
+      margin-bottom: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    label {
+      font-weight: 600;
+      color: #ffe1a0;
+      letter-spacing: 0.3px;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label i {
+      font-style: normal;
+      font-size: 1.1rem;
+    }
+
+    input, select {
+      background: #1e2a1bb3;
+      border: 1px solid #ffbc6e;
+      border-radius: 2rem;
+      padding: 0.9rem 1.2rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #faf3e0;
+      outline: none;
+      transition: all 0.2s;
+      backdrop-filter: blur(4px);
+    }
+
+    input:focus, select:focus {
+      border-color: #ffae42;
+      box-shadow: 0 0 0 3px rgba(255, 170, 60, 0.3);
+      background: #2a3824cc;
+    }
+
+    input::placeholder {
+      color: #a7b89e;
+      font-weight: 400;
+    }
+
+    .toggle-group {
+      background: rgba(0,0,0,0.35);
+      border-radius: 3rem;
+      padding: 0.3rem;
+      display: flex;
+      gap: 0.6rem;
+      border: 1px solid #ffbc6e60;
+    }
+
+    .toggle-option {
+      flex: 1;
+      text-align: center;
+      padding: 0.6rem 0;
+      border-radius: 2rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+      color: #cddcb9;
+    }
+
+    .toggle-option.active {
+      background: #f5a623;
+      color: #1e2a1a;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    /* result panel */
+    .result-panel {
+      margin-top: 2rem;
+      background: linear-gradient(125deg, #0e150ecc, #151f12cc);
+      border-radius: 2rem;
+      padding: 1.3rem 1.8rem;
+      border-left: 5px solid #f5b042;
+      transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+
+    .next-date-label {
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #f5bc70;
+    }
+
+    .next-date-value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFE5B4, #FFB347);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      line-height: 1.2;
+      margin: 0.3rem 0 0.5rem;
+    }
+
+    .info-badge {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 0.8rem;
+      font-size: 0.85rem;
+      color: #cbdbb8;
+      border-top: 1px dashed #ffbc6e40;
+      padding-top: 0.8rem;
+    }
+
+    .badge {
+      background: #2f3a28;
+      padding: 0.2rem 0.7rem;
+      border-radius: 2rem;
+      font-weight: 500;
+    }
+
+    .warning {
+      color: #ffb347;
+    }
+
+    hr {
+      border-color: #ffbc6e30;
+      margin: 1rem 0;
+    }
+
+    footer {
+      font-size: 0.7rem;
+      text-align: center;
+      color: #8f9e82;
+      margin-top: 2rem;
+    }
+
+    @media (max-width: 500px) {
+      .fuel-card { padding: 1.5rem; }
+      .next-date-value { font-size: 1.7rem; }
+    }
+  </style>
 </head>
 <body>
+<div class="fuel-card">
+  <h1>
+    ⛽ FUEL NAVIGATOR
+  </h1>
+  <div class="sub">Sri Lanka refueling schedule · odd/even rule · weekly reset every Saturday</div>
 
-<div class="drop"></div>
-<div class="drop"></div>
-<div class="drop"></div>
-<div class="drop"></div>
-<div class="drop"></div>
-<div class="drop"></div>
+  <!-- Number plate input -->
+  <div class="input-group">
+    <label><span>🚗</span> Vehicle number plate</label>
+    <input type="text" id="plateInput" placeholder="e.g., ABC-1234, WP CAY-5678" autocomplete="off">
+  </div>
 
-<div class="container">
-    <h2>⛽ Fuel Tracker</h2>
-    
-    <div class="form-group">
-        <label for="plate">Vehicle Number Plate</label>
-        <input type="text" id="plate" placeholder="WP CAA-1234" autocomplete="off">
+  <!-- Vehicle type: car or bike (visual toggle) -->
+  <div class="input-group">
+    <label><span>⛟</span> Vehicle type</label>
+    <div class="toggle-group" id="vehicleToggle">
+      <div class="toggle-option" data-type="car">🚘 CAR &nbsp;(15L limit)</div>
+      <div class="toggle-option" data-type="bike">🏍️ BIKE &nbsp;(5L limit)</div>
     </div>
+  </div>
 
-    <div class="form-group">
-        <label for="type">Vehicle Type</label>
-        <select id="type">
-            <option value="car">Car / Jeep / Van</option>
-            <option value="bike">Motorcycle / Scooter</option>
-        </select>
+  <!-- Refuel status for current week -->
+  <div class="input-group">
+    <label><span>📅</span> Already refueled THIS week? (Mon–Sat)</label>
+    <div class="toggle-group" id="refuelToggle">
+      <div class="toggle-option" data-refuel="yes">✅ Yes, already fueled</div>
+      <div class="toggle-option" data-refuel="no" id="defaultNo">🟢 No, not yet</div>
     </div>
+  </div>
 
-    <div class="form-group checkbox-group">
-        <input type="checkbox" id="refueled">
-        <label for="refueled" style="margin: 0; color: var(--text);">Already refueled this week</label>
+  <!-- Real-time result panel -->
+  <div class="result-panel" id="resultPanel">
+    <div class="next-date-label">⚡ NEXT ELIGIBLE REFUEL DATE</div>
+    <div class="next-date-value" id="nextDateDisplay">—</div>
+    <div class="info-badge" id="infoDetails">
+      <span class="badge">📆 Based on weekly reset (Saturday)</span>
+      <span class="badge">⛽ Limit resets every Saturday</span>
     </div>
-
-    <div class="result" id="resultBox">
-        <div class="result-label">Next Available Date</div>
-        <div class="date-wrapper">
-            <div class="date-display" id="dateOutput">-</div>
-        </div>
-        <div id="quotaOutput">Quota: -</div>
-    </div>
+  </div>
+  <footer>
+    🧾 Odd plate → odd dates | Even plate → even dates<br>
+    🔁 Weekly refuel limit resets on Saturday → next eligible date after Saturday
+  </footer>
 </div>
 
 <script>
-    const plateInput = document.getElementById('plate');
-    const typeInput = document.getElementById('type');
-    const refueledInput = document.getElementById('refueled');
-    const resultBox = document.getElementById('resultBox');
-    const dateOutput = document.getElementById('dateOutput');
-    const quotaOutput = document.getElementById('quotaOutput');
+  // ---------- Helper functions ----------
+  // Get the current system date in Sri Lanka timezone (Asia/Colombo)
+  // We'll use local date of the browser but ensure consistent day/month. For safety we consider client local date.
+  // But to exactly match "odd/even dates" based on actual date numbers, we use local date.
+  // The logic: week resets at Saturday -> Saturday becomes the first day of new refuel window.
+  // Important: If you refuel on Friday, you cannot refuel again until after Saturday (the reset day),
+  // and then the next eligible date based on plate parity.
 
-    plateInput.addEventListener('input', calculateDate);
-    typeInput.addEventListener('change', calculateDate);
-    refueledInput.addEventListener('change', calculateDate);
+  // Helper: get last Saturday (reset point) based on a reference date
+  function getLastSaturday(date) {
+    // returns the most recent Saturday (or same day if it's Saturday)
+    let d = new Date(date);
+    const day = d.getDay(); // 0=Sun, 1=Mon,... 6=Sat
+    const diffToSat = (day === 6 ? 0 : -(day + 1)); // move back to previous Saturday
+    d.setDate(d.getDate() + diffToSat);
+    d.setHours(0,0,0,0);
+    return d;
+  }
 
-    function calculateDate() {
-        const plate = plateInput.value.trim();
-        const type = typeInput.value;
-        const hasRefueled = refueledInput.checked;
+  // Get next Saturday after a date (the reset day after which new week starts)
+  function getNextSaturday(date) {
+    let d = new Date(date);
+    const day = d.getDay();
+    const daysUntilSat = (day === 6 ? 7 : (6 - day));
+    d.setDate(d.getDate() + daysUntilSat);
+    d.setHours(0,0,0,0);
+    return d;
+  }
 
-        const match = plate.match(/\d(?=[^\d]*$)/);
-        
-        if (!match) {
-            resultBox.classList.remove('show');
-            return;
-        }
+  // Check if vehicle is allowed to refuel on a specific date (based on last digit of plate)
+  function isEligibleByPlate(lastDigit, refuelDate) {
+    const dayOfMonth = refuelDate.getDate();
+    const isOddDate = (dayOfMonth % 2 === 1);
+    // plate last digit odd -> odd dates, even -> even dates
+    const plateIsOdd = (lastDigit % 2 === 1);
+    if (plateIsOdd && isOddDate) return true;
+    if (!plateIsOdd && !isOddDate) return true;
+    return false;
+  }
 
-        // Add the 'show' class to trigger the box pop-in animation
-        if (!resultBox.classList.contains('show')) {
-            resultBox.classList.add('show');
-        }
+  // Extract last numeric digit from number plate (Sri Lankan style)
+  // Examples: "ABC-1234" -> 4, "WP CAY-5678" -> 8, "GH 456" -> 6, "ABC-12" -> 2
+  function extractLastDigit(plate) {
+    if (!plate) return null;
+    // Remove all non-digit characters, get digits string
+    const digits = plate.replace(/[^0-9]/g, '');
+    if (digits.length === 0) return null;
+    const lastDigitChar = digits.slice(-1);
+    return parseInt(lastDigitChar, 10);
+  }
 
-        const lastDigit = parseInt(match[0], 10);
-        const isUserOdd = lastDigit % 2 !== 0; 
+  // Get today's date (local midnight)
+  function getTodayMidnight() {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    return today;
+  }
 
-        let checkDate = new Date(); 
-        checkDate.setHours(0, 0, 0, 0); 
-
-        if (hasRefueled) {
-            let daysUntilSunday = 7 - checkDate.getDay();
-            checkDate.setDate(checkDate.getDate() + daysUntilSunday);
-        }
-
-        while (true) {
-            const dateNum = checkDate.getDate();
-            const isDateOdd = dateNum % 2 !== 0;
-
-            if (isUserOdd === isDateOdd) {
-                break;
-            }
-            checkDate.setDate(checkDate.getDate() + 1);
-        }
-
-        const quota = type === 'car' ? '15 Liters' : '5 Liters';
-        const options = { weekday: 'long', month: 'short', day: 'numeric' }; 
-        const newDateText = checkDate.toLocaleDateString(undefined, options);
-
-        // Only run the text flip animation if the date actually changed or is appearing
-        if (dateOutput.textContent !== newDateText) {
-            // This trick forces the browser to restart the animation
-            dateOutput.classList.remove('flip');
-            void dateOutput.offsetWidth; // Trigger reflow
-            dateOutput.classList.add('flip');
-            
-            dateOutput.textContent = newDateText;
-        }
-        
-        quotaOutput.textContent = `Allowed Quota: ${quota}`;
+  // Main logic: determine nearest refuel date given:
+  // - plateLastDigit (0-9 or null)
+  // - vehicleType ('car' or 'bike')
+  // - alreadyRefueledThisWeek (boolean): whether user already fueled anytime in current week (Mon to Sat or before reset)
+  // The rule: limit resets every Saturday. So any refuel "slot" is considered used for the current week.
+  // If already refueled = true, then we cannot refuel until after the coming Saturday (next week's window)
+  // If already refueled = false, we can refuel on the next possible date (today or later) that matches parity AND after last reset.
+  // Also if today is Saturday? Saturday is start of new week? But Saturday is reset day: The limit resets on Saturday.
+  // Interpretation: On Saturday morning, the weekly limit is renewed. So if a user hasn't refueled this week (including Saturday itself), they can refuel on Saturday if parity matches.
+  // Since the limit resets every Saturday, "already refueled this week" means any refuel between previous Saturday and today (excluding the new Saturday if today is Saturday)
+  // We'll compute: The current week interval = from last Saturday (inclusive) to next Saturday (exclusive). 
+  // If alreadyRefueled = true, earliest refuel possible = first eligible date >= next Saturday.
+  // If alreadyRefueled = false, earliest refuel possible = first eligible date >= today (but also respecting the parity, and also after last Saturday if today is before last saturday? actually today is always after last saturday.)
+  
+  function computeNearestDate(plateLastDigit, vehicleType, alreadyRefueled) {
+    if (plateLastDigit === null || plateLastDigit === undefined) {
+      return { date: null, reason: "invalid_plate" };
     }
+    
+    const today = getTodayMidnight();
+    const lastSaturday = getLastSaturday(today);
+    const nextSaturday = getNextSaturday(today);
+    
+    // Define current week range: from lastSaturday (inclusive) to nextSaturday (exclusive)
+    // If alreadyRefueled = true => cannot use any date in [lastSaturday, nextSaturday) 
+    // Wait, but if today is before nextSaturday, and they fueled already -> they cannot fuel again until nextSaturday or later (since reset occurs at Saturday)
+    // The rules: limit resets every Saturday. So once you've used your quota for the current week (between last Saturday and coming Friday/Saturday), 
+    // you must wait until after the next Saturday (i.e., start of new week).
+    
+    let startSearchDate = new Date(today);
+    if (alreadyRefueled) {
+      // Already used this week's quota -> earliest possible refuel is the first eligible date that is >= nextSaturday
+      startSearchDate = new Date(nextSaturday);
+    } else {
+      // Not refueled yet this week: can refuel from today onwards (but must be within same week? Actually, if today is after last Saturday and before next Saturday)
+      // we start from today, but also we must check that we cannot go earlier. So start = today.
+      startSearchDate = new Date(today);
+    }
+    
+    // Edge: if alreadyRefueled false but today is Saturday? Then Saturday is the reset day: it's a new week. So it's valid.
+    // Our startSearchDate = today, that's fine.
+    
+    // Now we need to find the earliest date >= startSearchDate that satisfies:
+    // 1) date's day-of-month parity matches plate parity (odd/even)
+    // 2) The vehicle type does NOT affect date selection (limit per week is just about volume, but date eligibility only based on plate)
+    // However, the problem doesn't restrict type for date availability, so we ignore type for date.
+    
+    let candidate = new Date(startSearchDate);
+    let maxIter = 35; // safety: search next 35 days
+    while (maxIter-- > 0) {
+      const isEligible = isEligibleByPlate(plateLastDigit, candidate);
+      if (isEligible) {
+        // additional nuance: if alreadyRefueled = false, but candidate is still within same week before any reset? that's allowed
+        // Also check: if candidate is exactly today, it's ok. So return.
+        return { date: candidate, reason: "ok" };
+      }
+      candidate.setDate(candidate.getDate() + 1);
+    }
+    return { date: null, reason: "not_found" };
+  }
+  
+  // Format date nicely: e.g., "Monday, 25 March 2026" or "Apr 2, 2026"
+  function formatDate(dateObj) {
+    if (!dateObj) return "—";
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    return dateObj.toLocaleDateString('en-GB', options);
+  }
+  
+  // Additional rule details: Show if it's after weekly reset etc.
+  function getExtraInfo(plateLastDigit, vehicleType, alreadyRefueled, resultDate) {
+    if (plateLastDigit === null) return "⚠️ Enter a valid number plate to see nearest date.";
+    const parity = (plateLastDigit % 2 === 0) ? "EVEN" : "ODD";
+    const vehicleText = (vehicleType === 'car') ? 'Car (15L limit)' : 'Bike (5L limit)';
+    let info = `🚦 Plate ends with ${plateLastDigit} → ${parity} number plate → requires ${parity === 'ODD' ? 'ODD' : 'EVEN'} dates. `;
+    if (alreadyRefueled) {
+      info += `⏳ You've already refueled this week. Next window opens after upcoming Saturday. `;
+    } else {
+      info += `✅ You haven't refueled this week — next eligible date shown. `;
+    }
+    if (resultDate) {
+      const dayMonth = resultDate.getDate();
+      const parityDate = (dayMonth % 2 === 0) ? "even" : "odd";
+      info += `📅 Selected date (${dayMonth}) is an ${parityDate} day → matches plate rule.`;
+    } else {
+      info += `❓ No date found within range — check plate digits.`;
+    }
+    return info;
+  }
+  
+  // ---------- UI state & realtime binding ----------
+  let currentPlate = "";
+  let currentVehicle = "car";     // default car
+  let currentRefuelStatus = false; // false = "not refueled yet", true = "already refueled"
+  
+  // DOM elements
+  const plateInput = document.getElementById('plateInput');
+  const vehicleOptions = document.querySelectorAll('#vehicleToggle .toggle-option');
+  const refuelOptions = document.querySelectorAll('#refuelToggle .toggle-option');
+  const nextDateDisplay = document.getElementById('nextDateDisplay');
+  const infoDetailsSpan = document.getElementById('infoDetails');
+  
+  // Helper to update active toggle style
+  function updateToggleUI() {
+    vehicleOptions.forEach(opt => {
+      const type = opt.getAttribute('data-type');
+      if (type === currentVehicle) opt.classList.add('active');
+      else opt.classList.remove('active');
+    });
+    refuelOptions.forEach(opt => {
+      const refState = opt.getAttribute('data-refuel');
+      if ((refState === 'yes' && currentRefuelStatus === true) || (refState === 'no' && currentRefuelStatus === false)) {
+        opt.classList.add('active');
+      } else {
+        opt.classList.remove('active');
+      }
+    });
+  }
+  
+  // Core refresh: read all, compute, update result panel
+  function refreshOutput() {
+    let plateRaw = currentPlate.trim();
+    let lastDigit = null;
+    if (plateRaw.length > 0) {
+      lastDigit = extractLastDigit(plateRaw);
+      // extra: if no digits found, lastDigit stays null
+    }
+    let resultDateObj = null;
+    let valid = false;
+    if (lastDigit !== null && plateRaw !== "") {
+      const nearest = computeNearestDate(lastDigit, currentVehicle, currentRefuelStatus);
+      if (nearest.date) {
+        resultDateObj = nearest.date;
+        valid = true;
+      } else {
+        resultDateObj = null;
+      }
+    }
+    
+    // update UI
+    if (!plateRaw || lastDigit === null) {
+      nextDateDisplay.innerText = "⛽ enter plate number";
+      infoDetailsSpan.innerHTML = `<span class="badge">🔢 Plate must contain at least one digit (last digit matters)</span>`;
+      return;
+    }
+    
+    if (resultDateObj) {
+      nextDateDisplay.innerText = formatDate(resultDateObj);
+      const extraMsg = getExtraInfo(lastDigit, currentVehicle, currentRefuelStatus, resultDateObj);
+      infoDetailsSpan.innerHTML = `
+        <span class="badge">🔢 Last digit: ${lastDigit} (${lastDigit % 2 === 0 ? 'even' : 'odd'})</span>
+        <span class="badge">${currentVehicle === 'car' ? '🚘 Car · 15L/week' : '🏍️ Bike · 5L/week'}</span>
+        <span class="badge">${currentRefuelStatus ? '⛔ Already fueled this week' : '🟢 Available this week'}</span>
+        <span class="warning">📌 ${extraMsg}</span>
+      `;
+    } else {
+      nextDateDisplay.innerText = "⚠️ could not determine date";
+      infoDetailsSpan.innerHTML = `<span class="badge">⚠️ Check plate digits or parity logic. Ensure last digit is numeric.</span>`;
+    }
+  }
+  
+  // Event listeners: realtime update on any change
+  function bindEvents() {
+    plateInput.addEventListener('input', (e) => {
+      currentPlate = e.target.value;
+      refreshOutput();
+    });
+    
+    vehicleOptions.forEach(opt => {
+      opt.addEventListener('click', () => {
+        const type = opt.getAttribute('data-type');
+        if (type === 'car') currentVehicle = 'car';
+        else if (type === 'bike') currentVehicle = 'bike';
+        updateToggleUI();
+        refreshOutput();
+      });
+    });
+    
+    refuelOptions.forEach(opt => {
+      opt.addEventListener('click', () => {
+        const refState = opt.getAttribute('data-refuel');
+        currentRefuelStatus = (refState === 'yes');
+        updateToggleUI();
+        refreshOutput();
+      });
+    });
+  }
+  
+  // Set defaults and initial active toggles
+  function init() {
+    currentVehicle = "car";
+    currentRefuelStatus = false;   // default "No, not yet"
+    currentPlate = "";
+    plateInput.value = "";
+    updateToggleUI();
+    bindEvents();
+    refreshOutput();  // show placeholder
+  }
+  
+  init();
 </script>
-
 </body>
 </html>
